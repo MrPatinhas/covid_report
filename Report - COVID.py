@@ -2,6 +2,7 @@
 # coding: utf-8
 
 #Autor: Thiago Villani
+#Data: 09/11/2020
 
 
 import pandas as pd
