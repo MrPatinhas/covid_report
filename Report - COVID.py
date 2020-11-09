@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[83]:
+#Autor: Thiago Villani
 
 
 import pandas as pd
@@ -49,7 +49,7 @@ def getDerivativeVector(vec, wind):
             value = (vec[k] - vec[k-1])*100/vec[k-1]
         except:
             value = 100
-            
+
         if k <= 7:
             cv.append([value,'inconclusivo'])
         else:
@@ -84,13 +84,13 @@ def generate_report_int_sp(pdf):
         listEvolucaoInternacoes.internacoes_7d = listEvolucaoInternacoes.internacoes_7d.astype(float)
         listEvolucaoInternacoes["dev2"] = 0
         listEvolucaoInternacoes["Aval"] = ""
-        
+
         for i in range(0,len(listEvolucaoInternacoes)):
             if(i!=0):
                 listEvolucaoInternacoes.iloc[i,3] =  (listEvolucaoInternacoes.iloc[i,1] - listEvolucaoInternacoes.iloc[i-1,1])
             else:
                 listEvolucaoInternacoes.iloc[i,3] = 0
-        
+
         for i in range(0,len(listEvolucaoInternacoes)):
             if(listEvolucaoInternacoes.iloc[i,3] >= 3 and listEvolucaoInternacoes.iloc[i,1] >= 3):
                 listEvolucaoInternacoes.iloc[i,4] = 0
@@ -102,7 +102,7 @@ def generate_report_int_sp(pdf):
                 listEvolucaoInternacoes.iloc[i,4] = 3
             else:
                 listEvolucaoInternacoes.iloc[i,4] = -1
-        
+
         listEvolucaoInternacoes.datahora = pd.to_datetime(listEvolucaoInternacoes.datahora)
         x = listEvolucaoInternacoes.datahora
         y = listEvolucaoInternacoes.internacoes_7v7
@@ -124,9 +124,9 @@ def generate_report_int_sp(pdf):
         ax1.pcolorfast(ax1.get_xlim(), ax1.get_ylim(),
                       listEvolucaoInternacoes['Aval'].values[np.newaxis],
                       cmap='RdYlGn', alpha=0.3)
-        
+
         ax1.xaxis_date()
-    
+
         import matplotlib.dates as mdates
         myFmt = mdates.DateFormatter('%m-%d')
         ax1.xaxis.set_major_formatter(myFmt)
@@ -153,7 +153,7 @@ def generate_report_int_sp(pdf):
 
 def get_daily_death_and_cases_axis(dfRaw, ax, estado, janela = 7, flag_growth = 'no'):
     dfBrasil = dfRaw[(dfRaw.estado == estado)  & ~(dfRaw.municipio.isna())]
-    
+
     if(len(dfBrasil)==0):
         dfBrasil = dfRaw[(dfRaw.regiao == estado)  & ~(dfRaw.municipio.isna())]
         if(len(dfBrasil)==0):
@@ -163,10 +163,10 @@ def get_daily_death_and_cases_axis(dfRaw, ax, estado, janela = 7, flag_growth = 
                                     casosAcumulado = ('casosAcumulado', 'sum'),
                                         casosNovos = ('casosNovos','sum'),
                                         obitosNovos = ('obitosNovos','sum')
-                                        
+
                                    ).reset_index()
     dfBrasil = dfBrasil.fillna(0)
-    
+
     dfBrasil["recuperadosPorDia"] = 0
     for i in range(0,len(dfBrasil)):
                 if(i!=0):
@@ -175,25 +175,25 @@ def get_daily_death_and_cases_axis(dfRaw, ax, estado, janela = 7, flag_growth = 
                     dfBrasil.iloc[i,len(dfBrasil.columns)-1] = 0
 
     dfBrasil = dfBrasil.fillna(0)
-    
+
     dfBrasil["new index"] = dfBrasil.Recuperadosnovos/dfBrasil.casosAcumulado
     dfBrasil = dfBrasil.fillna(0)
-    
+
     wind = janela
     plt.rcParams.update({'font.size': 12})
     dfBrasil.data = pd.to_datetime(dfBrasil.data)
     x = dfBrasil.data
     y2 = dfBrasil.casosNovos.rolling(window=wind).mean()
     y3 = dfBrasil.obitosNovos.rolling(window=wind).mean()
-    
+
     color = 'tab:red'
     ax.set_xlabel('Datas')
     ax.set_title('Estado: ' + estado)
     ax.set_ylabel('Qtd de Novos Casos Diários', color=color)
     l1 = ax.plot(x, y2, color='r', label='Qtd de Novos Casos - Média Móvel (Dias): ' + str(wind))
-    
+
     if (flag_growth != 'no'):
-        
+
         if(flag_growth == 'last'):
             firstorderiv = getDerivativeVector(y3, 1)
             if(firstorderiv[-3][1]=='crescimento'):
@@ -204,7 +204,7 @@ def get_daily_death_and_cases_axis(dfRaw, ax, estado, janela = 7, flag_growth = 
                 ax.axvspan(x[0], x[len(x)-1], alpha=0.5, color='yellow')
             else:
                 ax.axvspan(x[0], x[len(x)-1] , alpha=0.5, color='gray')
-            
+
         else:
             if(flag_growth == 'casos'):
                 firstorderiv = getDerivativeVector(y2, 1)
@@ -221,16 +221,16 @@ def get_daily_death_and_cases_axis(dfRaw, ax, estado, janela = 7, flag_growth = 
                         ax.axvspan(xd, x[index+1] , alpha=0.5, color='yellow')
                     else:
                         ax.axvspan(xd, x[index+1] , alpha=0.5, color='gray')
-    
+
     ax.tick_params(axis='y', labelcolor=color)
-    
+
     ax.xaxis_date()
-    
+
     import matplotlib.dates as mdates
     myFmt = mdates.DateFormatter('%m-%d')
     ax.xaxis.set_major_formatter(myFmt)
-    
-    
+
+
     locator = mdates.AutoDateLocator(minticks=3, maxticks=15)
     ax.xaxis.set_major_locator(locator)
 
@@ -240,7 +240,7 @@ def get_daily_death_and_cases_axis(dfRaw, ax, estado, janela = 7, flag_growth = 
     ax2.set_ylabel('Qtd de óbitos novos', color='k')  # we already handled the x-label with ax1
     l2 = ax2.plot(x, y3, color='k', label='Qtd de Novos óbitos - Média Móvel (Dias): ' + str(wind))
     ax2.tick_params(axis='y', labelcolor=color)
-    
+
     # added these three lines
     lns = l1+l2
     labs = [l.get_label() for l in lns]
@@ -360,7 +360,7 @@ def full_panel_country(pdf):
 
 
 def get_evolution_recovery(dfRaw, pdf, janela = 7):
-    
+
     dfBrasil = dfRaw[dfRaw.regiao == "Brasil"]
 
     dfBrasil = dfBrasil.groupby("data").agg(Recuperadosnovos=('Recuperadosnovos', 'sum'),
@@ -409,20 +409,20 @@ def get_evolution_recovery(dfRaw, pdf, janela = 7):
     l3 = ax1.plot(x, y2, color='r', label='Qtd de Novos Casos - Média Móvel (Dias): ' + str(wind))
     l4 = ax1.plot(x, z, color='b', label='Diferença entre Novos Casos e Novas Recuperações - Média Móvel (Dias): ' + str(wind))
     ax1.tick_params(axis='y', labelcolor=color)
-    
+
     ax1.xaxis_date()
-    
+
     import matplotlib.dates as mdates
     myFmt = mdates.DateFormatter('%m-%d')
     ax1.xaxis.set_major_formatter(myFmt)
-    
-    
+
+
     locator = mdates.AutoDateLocator(minticks=3, maxticks=15)
     ax1.xaxis.set_major_locator(locator)
 
 
     ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    
+
 
     color = 'k'
     ax2.set_ylabel('Qtd de óbitos novos', color='k')  # we already handled the x-label with ax1
@@ -437,18 +437,18 @@ def get_evolution_recovery(dfRaw, pdf, janela = 7):
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     plt.show()
     pdf.savefig(fig)
-    plt.close()  
+    plt.close()
 
 
 # In[92]:
 
 
 with PdfPages(url_output_pdf_BrazilReport) as pdf:
-    
+
     a = get_evolution_recovery(dfRaw, pdf, janela = 7)
     full_panel_country(pdf)
     get_panel_by_region(pdf)
-        
+
     d = pdf.infodict()
     d['Title'] = 'Análise de Evolução COVID - Brasil Visão Nacional'
     d['Author'] = 'Thiago Villani'
@@ -459,11 +459,10 @@ with PdfPages(url_output_pdf_BrazilReport) as pdf:
 
 
 with PdfPages(url_output_pdf_SPReport) as pdf:
-    
+
     generate_report_int_sp(pdf)
-        
+
     d = pdf.infodict()
     d['Title'] = 'Análise de Internações SP - COVID'
     d['Author'] = 'Thiago Villani'
     d['Subject'] = 'Fonte: Repositório de dados sobre casos e óbitos decorrentes do COVID-19 nos municípios do Estado de São Paulo e sobre leitos e internações por Departamento Regional de Saúde'
-
